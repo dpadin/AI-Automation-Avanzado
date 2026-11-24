@@ -1,0 +1,338 @@
+{
+  "name": "checkpoint1_diego_padin",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "53948c04-e3b6-46ab-a793-eea12eddc05d",
+      "name": "When chat message received",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        80,
+        96
+      ],
+      "webhookId": "9133d031-4dd7-4caa-b155-a5a616f39586"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "### ROL Y ÁMBITO ###\nEres el Asistente Virtual de recepción para un servicio profesional de electricidad domiciliaria en Argentina. Tu única función es recibir consultas de clientes, identificar qué problema eléctrico tienen, solicitar su nombre si no lo dieron y registrar el caso. Tienes estrictamente prohibido dar presupuestos cerrados, inventar tarifas o dar instrucciones peligrosas de reparación manual.\n\n### OBJETIVO OPERATIVO ###\nObtener el nombre del cliente, una breve descripción de la falla o trabajo requerido, clasificar si es URGENCIA (cortocircuito, olor a quemado, sin luz total) o PROGRAMADO, y guardar el registro usando tu herramienta.\n\n### REGLAS DE USO DE HERRAMIENTAS ###\n1. Si el usuario solo saluda (ej. 'Hola'), salúdalo cordialmente, preséntate y pídele su nombre y qué problema eléctrico necesita resolver.\n2. No registres nada en la planilla hasta contar con el nombre del cliente y el motivo de la consulta.\n3. Una vez obtenidos ambos datos, ejecuta inmediatamente la herramienta Registrar Consulta Sheets. Los campos a registrar son:\nNombre\nProblema \nUrgencia\n4. Tras registrar en la planilla, confirma al cliente usando exactamente la frase: 'Tu solicitud ha sido registrada con éxito' e indica que un electricista matriculado se comunicará a la brevedad.\n5. NUNCA confirmes el registro ni uses la frase \"Tu solicitud ha sido registrada con éxito\" sin haber ejecutado previamente la herramienta Registrar Consulta Sheets y recibido su confirmación exitosa en este mismo turno.\n6. Si faltan datos (nombre o problema), solicita únicamente el dato faltante y mantén la conversación abierta sin registrar.\n7. Si al ejecutar Registrar Consulta Sheets la herramienta devuelve un error técnico y es imposible guardar el registro, informa al cliente que hubo un inconveniente técnico con el sistema y responde exactamente: \"Derivando tu caso con prioridad máxima a revisión humana\".\n\n\n### PROTOCOLO DE ESCALAMIENTO ###\nSi el usuario reporta riesgo eléctrico grave (chispazos, humo, cables pelados con tensión), indícale que corte la llave térmica general por seguridad y responde exactamente: \"Derivando tu caso con prioridad máxima a revisión humana\".",
+          "maxIterations": 6
+        }
+      },
+      "id": "acab7e96-df5a-4af9-95da-549f98007fd9",
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        352,
+        96
+      ]
+    },
+    {
+      "parameters": {
+        "contextWindowLength": 10
+      },
+      "id": "982c822a-77cc-4aa8-94e4-04bd8447eb10",
+      "name": "Simple Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        384,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Usar esta herramienta obligatoriamente cuando el usuario brinde su nombre y describa un problema o solicitud de trabajo eléctrico, para registrar el pedido en la planilla de seguimiento.",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "13MLCOBdQjGH46fMAvqfdrWqE7LM4S1779sGuRF4kAfk",
+          "mode": "list",
+          "cachedResultName": "Proyecto AI Auto- Memoria",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/13MLCOBdQjGH46fMAvqfdrWqE7LM4S1779sGuRF4kAfk/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Consultas_Electricidad",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/13MLCOBdQjGH46fMAvqfdrWqE7LM4S1779sGuRF4kAfk/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Fecha": "=    {{ $now.toFormat('yyyy-MM-dd') }}",
+            "Nombre": "={{ $fromAI('Nombre', `Nombre completo del cliente`, 'string') }}",
+            "Problema": "={{ $fromAI('Problema', ``, 'string') }}",
+            "Urgencia": "={{ $fromAI('Urgencia', ``, 'string') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Fecha",
+              "displayName": "Fecha",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Nombre",
+              "displayName": "Nombre",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Problema",
+              "displayName": "Problema",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Urgencia",
+              "displayName": "Urgencia",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "35395320-138d-4d4d-9c0b-2fd3a2b3374b",
+      "name": "Registrar Consulta Sheets",
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.5,
+      "position": [
+        608,
+        304
+      ],
+      "notesInFlow": false,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "dKnbfExL72HRB02g",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "dpadin@gmail.com",
+        "subject": "Log ElectroAsistente - Tarea Completada",
+        "message": "=Tarea completada con éxito.\n\nDetalle de respuesta al cliente:\n{{ $json.output }}",
+        "options": {}
+      },
+      "id": "48f5e535-0f9c-4254-9eea-87795deb54a4",
+      "name": "Log Observabilidad Gmail",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        880,
+        -16
+      ],
+      "webhookId": "f8628be5-16ca-433f-9b0a-4da0c7074673",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "oHX1utO1Qu2rtihu",
+          "name": "Gmail account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "qwen/qwen3.8-27b",
+        "options": {
+          "maxTokensToSample": 500,
+          "temperature": 0.2
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        208,
+        336
+      ],
+      "id": "a4c4aa0b-dbb8-4abd-8ed3-4c27442a5a6d",
+      "name": "Groq Chat Model",
+      "alwaysOutputData": true,
+      "credentials": {
+        "groqApi": {
+          "id": "Ylo12DYHIEb7hNUn",
+          "name": "Groq account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "resp-chat-out",
+              "name": "output",
+              "value": "={{ $('AI Agent').item.json.output }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "9182fe65-7aab-454e-8050-33d07726a6af",
+      "name": "Respuesta Final Chat",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1136,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "cond-reg",
+              "leftValue": "={{ $json.output }}",
+              "rightValue": "registrada",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "dff357c8-d11d-429c-8951-69d89ddb16a9",
+      "name": "IF Tarea Completada",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        832,
+        224
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registrar Consulta Sheets": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "IF Tarea Completada",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Observabilidad Gmail": {
+      "main": [
+        [
+          {
+            "node": "Respuesta Final Chat",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Tarea Completada": {
+      "main": [
+        [
+          {
+            "node": "Log Observabilidad Gmail",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respuesta Final Chat",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "a1ece7d4-f4cc-4509-8015-df29906917b2",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ae6b73cb4272f098fc9c4e5da5a997248cb9199ffbc4a25c0e0ed66f9aebf097"
+  },
+  "id": "QCjr3Y5T4BZif80S",
+  "tags": []
+}
